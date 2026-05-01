@@ -1,5 +1,5 @@
 import { CheckCircle2, ImageIcon, UploadIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 import { REDIRECT_DELAY_MS, PROGRESS_INCREMENT } from '../lib/constants';
 
@@ -8,22 +8,46 @@ const Upload = ({ onComplete }: { onComplete: (data: string) => void }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { isSignedIn } = useOutletContext<AuthContext>();
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const processFile = (file: File) => {
     const reader = new FileReader();
+    reader.onerror = () => {
+      setFile(null);
+      setProgress(0);
+    }
     reader.onload = () => {
       const base64Data = reader.result as string;
       let currentProgress = 0;
 
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         currentProgress += 10; // Increment progress
         setProgress(currentProgress);
 
         if (currentProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          timeoutRef.current = setTimeout(() => {
             onComplete(base64Data); // Call onComplete with Base64 data
+            timeoutRef.current = null;
           }, REDIRECT_DELAY_MS);
         }
       }, PROGRESS_INCREMENT);
@@ -37,9 +61,10 @@ const Upload = ({ onComplete }: { onComplete: (data: string) => void }) => {
     setIsDragging(false);
 
     if (!isSignedIn) return; // Block upload logic if not signed in
-
+    
+    const allowedTypes = ['image/jpeg', 'image/png'];
     const files = event.dataTransfer.files;
-    if (files.length > 0) {
+    if(files.length > 0 && allowedTypes.includes(files[0].type)) {
       const selectedFile = files[0];
       setFile(selectedFile);
       processFile(selectedFile);
