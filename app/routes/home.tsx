@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
 import { Welcome } from "../welcome/welcome";
 import Navbar from "../../components/Navbar";
-import { ArrowRight, Layers } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock, Layers } from "lucide-react";
 import Button from "../../components/ui/Button";
 
 export function meta({}: Route.MetaArgs) {
@@ -62,6 +62,22 @@ export default function Home() {
           <div className="badge">
             <span>Community</span>
           </div>
+          </div>
+
+          <div className="card-body">
+            <div>
+              <h3>
+                Modern Living Room
+              </h3>
+              <div className="meta">
+                <Clock size={12}/>
+                <span>{new Date('01.01.2027').toLocaleDateString()}</span>
+                <span>By Aryan Tiwari</span>
+              </div>
+            </div>
+            <div className="arrow">
+              <ArrowUpRight size={18}/>
+            </div>
           </div>
         </div>
       </div>
