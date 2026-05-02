@@ -3,6 +3,7 @@ import React, { use, useEffect } from 'react'
 import Button from './ui/Button';
 import { useOutletContext } from 'react-router';
 import { signIn, signOut } from '../lib/puter.action';
+import type { AuthContext } from '../type';
 
 
 const Navbar = () => {
