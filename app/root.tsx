@@ -12,6 +12,7 @@ import "./app.css";
 import { User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUser,signIn as puterSignIn, signOut as puterSignOut } from "../lib/puter.action";
+import type { AuthState } from "../type";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

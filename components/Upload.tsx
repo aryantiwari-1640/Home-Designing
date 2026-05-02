@@ -2,6 +2,7 @@ import { CheckCircle2, ImageIcon, UploadIcon } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 import { REDIRECT_DELAY_MS, PROGRESS_INCREMENT } from '../lib/constants';
+import type { AuthContext } from '../type';
 
 const Upload = ({ onComplete }: { onComplete: (data: string) => void }) => {
   const [file, setFile] = useState<File | null>(null);
