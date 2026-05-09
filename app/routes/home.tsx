@@ -5,9 +5,9 @@ import Upload from "../../components/Upload";
 import { ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DesignItem } from "../../type";
-import { createProject } from "../../lib/puter.action";
+import { createProject, getProjects } from "../../lib/puter.action";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,9 +19,12 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const navigate=useNavigate();
   const [projects,setProjects]=useState<DesignItem[]>([]);
+  const isCreatingProjectRef=useRef(false);
 
 
   const handleUploadComplete= async (base64Image:string)=>{
+    try{
+    if(isCreatingProjectRef.current) return false;
     const newId=Date.now().toString();
     const name=`Residence ${newId}`;
     const newItem={
@@ -46,7 +49,20 @@ export default function Home() {
       }
     });
     return true;
+    }finally{
+      isCreatingProjectRef.current=false;
+    }
   }
+
+  useEffect(()=>{
+    const fetchProjects=async()=>{
+      const items= await getProjects();
+      setProjects(items);
+    }
+
+    fetchProjects();
+  },[]);
+  
   return (
   <div className="home"><Navbar/>
   <section className="hero">
@@ -92,7 +108,7 @@ export default function Home() {
       </div>
       <div className="projects-grid">
         {projects.map(({id,name,renderedImage,sourceImage,timestamp})=>(
-          <div key={id} className="project-card group">
+          <div key={id} className="project-card group" onClick={()=>navigate(`/visualizer/${id}`)}>
           <div className="preview">
              <img src={renderedImage|| sourceImage} alt="Project"></img>
           <div className="badge">

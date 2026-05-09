@@ -63,7 +63,7 @@ const Upload = ({ onComplete }: { onComplete: (data: string) => void }) => {
 
     if (!isSignedIn) return; // Block upload logic if not signed in
     
-    const allowedTypes = ['image/jpeg', 'image/png'];
+    const allowedTypes = ['image/jpeg', 'image/png','image/webp'];
     const files = event.dataTransfer.files;
     if(files.length > 0 && allowedTypes.includes(files[0].type)) {
       const selectedFile = files[0];
@@ -106,7 +106,7 @@ const Upload = ({ onComplete }: { onComplete: (data: string) => void }) => {
           <input
             type="file"
             className="drop-input"
-            accept=".jpg,.jpeg,.png"
+            accept=".jpg,.jpeg,.png,.webp"
             disabled={!isSignedIn}
             onChange={handleChange}
           />
