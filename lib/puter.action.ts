@@ -23,7 +23,7 @@ export const getCurrentUser = async () => {
     }
   };
 
-export const createProject = async({item,visibility="private"}:CreateProjectParams):Promise<DesignItem|null|undefined>=>{
+export const createProject = async({item,visibility}:CreateProjectParams):Promise<DesignItem|null|undefined>=>{
     if(!PUTER_WORKER_URL){
       console.warn('Missing VITE_PUTER_WORKER_URL;skipping project save;');
       return null;
@@ -59,11 +59,14 @@ export const createProject = async({item,visibility="private"}:CreateProjectPara
           method:'POST',
           headers:{'content-Type':'application/json'},body:JSON.stringify({project:payload,visibility})
         });
-        if(!response.ok){
+        if(response.status!=200){
             console.error('Failed to save the Project',await response.text());
             return null;
         }
         const data=(await response.json() as {project?:DesignItem|null});
+        if(visibility==='community' && data?.project){
+          data.project.isPublic=true;
+        }
         return data?.project ?? null;
      }catch(e){
       console.warn("Failed to create project",e);
@@ -83,7 +86,7 @@ export const getProjects=async()=>{
       console.error('Failed to fetch history',await response.text());
       return [];
     }
-
+    
     const data=(await response.json()) as {projects?:DesignItem[]|null};
     return Array.isArray(data?.projects)?data?.projects:[];
     
@@ -125,4 +128,39 @@ export const getProjectById = async ({ id }: { id: string }) => {
         console.error("Failed to fetch project:", error);
         return null;
     }
+};
+
+export const deleteProject = async (
+  projectId: string
+): Promise<boolean> => {
+
+  if (!PUTER_WORKER_URL) {
+    console.warn('Missing VITE_PUTER_WORKER_URL; skipping delete');
+    return false;
+  }
+
+  try {
+    const response = await puter.workers.exec(
+      `${PUTER_WORKER_URL}/api/projects/delete?id=${projectId}`,
+      {
+        method:'POST',
+      }
+    );
+
+    console.log(response);
+
+    if (!response.ok) {
+      console.error(
+        'Failed to delete project',
+        await response.text()
+      );
+      return false;
+    }
+
+    return true;
+
+  } catch (e) {
+    console.warn('Failed to delete project', e);
+    return false;
+  }
 };

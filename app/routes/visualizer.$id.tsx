@@ -32,6 +32,32 @@ const visualizerId = () => {
     document.body.removeChild(link);
   }
 
+  const handleShare = async () => {
+
+  if (!project) return;
+
+  try {
+
+    const updatedProject = {
+      ...project,
+      sharedAt: new Date().toISOString(),
+    };
+
+    const saved = await createProject({
+      item: updatedProject,
+      visibility: "community",
+    });
+
+    if (saved) {
+      setProject(saved);
+      handleBack();
+    }
+
+  } catch (e) {
+    console.error("Failed to share project", e);
+  }
+};
+
   const runGeneration=async(item:DesignItem)=>{
     if(!id || !item.sourceImage) return;
     
@@ -146,7 +172,7 @@ const visualizerId = () => {
                                 </Button>
                                 <Button
                                     size="sm"
-                                    onClick={()=>{}}
+                                    onClick={handleShare}
                                     className="share"
                                     disabled={!currentImage}
                                 >

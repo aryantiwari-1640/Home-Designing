@@ -25,11 +25,18 @@ router.post('/api/projects/save',async({request,user})=>{
         if(!userPuter) return jsonError(401,"Authentication Failed");
         const body=await request.json();
         const project=body?.project;
+        const visibility=body?.visibility || 'private';
         if(!project?.id || !project?.sourceImage) return jsonError(400,"Project Not Found");
 
         const payload={
             ...project,
-            updatedAt: new Date().toISOString();
+            visibility,
+            updatedAt: new Date().toISOString(),
+            ...(visibility === "community"
+                ? {
+                    sharedAt: new Date().toISOString(),
+                  }
+                : {})
         }
 
         const userId= await getUserId(userPuter);
@@ -54,7 +61,7 @@ router.get('/api/projects/list', async ({ user }) => {
 
         // Get all keys
         const projects = (await userPuter.kv.list(PROJECT_PREFIX,true)).map
-            (({value})=>({...value, isPublic:true}));
+            (({value})=>({...value}));
 
         return {projects};
     
@@ -92,5 +99,61 @@ router.get('/api/projects/get', async ({ request, user }) => {
         return jsonError(500, 'Failed to fetch project', {
             message: e.message || 'Unknown error'
         });
+    }
+});
+
+router.delete('/api/projects/delete', async ({ request, user }) => {
+    try {
+        const userPuter = user.puter;
+
+        if (!userPuter) {
+            return jsonError(401, 'Authentication Failed');
+        }
+
+        const userId = await getUserId(userPuter);
+
+        if (!userId) {
+            return jsonError(401, 'Authentication Failed');
+        }
+
+        const url = new URL(request.url);
+
+        const id = url.searchParams.get('id');
+
+        if (!id) {
+            return jsonError(400, 'Project id is required');
+        }
+
+        const key = `${PROJECT_PREFIX}${id}`;
+
+        // Optional existence check
+        const existing = await userPuter.kv.get(key);
+
+        if (!existing) {
+            return jsonError(404, 'Project not found');
+        }
+
+        await userPuter.kv.del(key);
+
+        return new Response(
+            JSON.stringify({
+                success: true,
+                deletedId: id
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+                }
+            }
+        );
+
+    } catch (e) {
+        return jsonError(
+            500,
+            'Failed to delete project',
+            { message: e.message || 'Unknown error' }
+        );
     }
 });

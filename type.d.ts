@@ -41,7 +41,7 @@ interface DesignItem {
 
 interface CreateProjectParams {
     item: DesignItem;
-    visibility?: "private" | "public";
+    visibility?: "private" | "community";
 }
 
 interface Generate3DViewParams {
